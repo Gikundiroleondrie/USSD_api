@@ -12,13 +12,12 @@ class UssdService(
     private val customerRepository: rw.mtn.ussd.customer.CustomerRepository,
     private val transactionRepository: rw.mtn.ussd.transaction.TransactionRepository
 ) {
+    
     private val phoneRegex = Regex("^07\\d{8}$")
     private val languagePrefs = mutableMapOf<String, String>()
     private val sessionPaths = mutableMapOf<String, MutableList<String>>()
 
     private fun isEn(phone: String) = languagePrefs[phone] == "en"
-
-    // ── Session management ────────────────────────────────────────────────────
 
     fun processInput(sessionId: String, phoneNumber: String, rawText: String): String {
         registerCustomerIfNew(phoneNumber)
@@ -29,7 +28,6 @@ class UssdService(
         when {
             newInput.isBlank() -> path.clear()
             newInput == "0" -> {
-                if (path.isNotEmpty()) path.removeLast()
                 if (path.isNotEmpty()) path.removeLast()
             }
             else -> path.add(newInput)
@@ -42,38 +40,33 @@ class UssdService(
     }
 
     fun clearSession(sessionId: String) = sessionPaths.remove(sessionId)
-
-    // ── Core handler ──────────────────────────────────────────────────────────
-
     fun handle(phoneNumber: String, text: String): String {
-        val steps = if (text.isBlank()) emptyList() else text.split("*")
-        if (steps.isEmpty()) return renderMenu("main", phoneNumber)
+    registerCustomerIfNew(phoneNumber) 
+    
+    val steps = if (text.isBlank()) emptyList() else text.split("*")
+    if (steps.isEmpty()) return renderMenu("main", phoneNumber)
 
-        // Step 0 — main menu selection
-        val mainItems = menuRepo.findByMenuKeyAndActiveTrueOrderByPositionAsc("main")
-        if (mainItems.isEmpty()) return END("MTN Rwandacell Message\nService unavailable")
+    val mainItems = menuRepo.findByMenuKeyAndActiveTrueOrderByPositionAsc("main")
+    if (mainItems.isEmpty()) return END("MTN Rwandacell Message\nService unavailable")
 
-        val mainChoice = steps[0].toIntOrNull()
-        if (mainChoice == null || mainChoice < 1 || mainChoice > mainItems.size) {
-            return invalidInput(phoneNumber)
-        }
+    val mainChoice = steps[0].toIntOrNull()
+    if (mainChoice == null || mainChoice < 1 || mainChoice > mainItems.size) {
+        return invalidInput(phoneNumber)
+    }
 
         val mainItem = mainItems[mainChoice - 1]
 
-        // Handle Change Language (no phone, no packages — just toggle)
         if (mainItem.targetKey == "changelanguage") {
             languagePrefs[phoneNumber] = if (isEn(phoneNumber)) "rw" else "en"
             return renderMenu("main", phoneNumber)
         }
 
-        // All other main items require a phone number
         if (steps.size == 1) return phonePrompt(phoneNumber)
         val recipient = validatedPhone(steps[1]) ?: return invalidPhone(phoneNumber)
 
         return resolveTarget(mainItem.targetKey, steps, 2, recipient, phoneNumber)
     }
 
-    // ── Target resolver — routes to sub-menu or package list ─────────────────
 
     private fun resolveTarget(
         targetKey: String,
@@ -82,17 +75,14 @@ class UssdService(
         recipient: String,
         callerPhone: String
     ): String {
-        // Special cases that don't have DB menu items
         return when (targetKey) {
             "routerbundles" -> END(
                 if (isEn(callerPhone)) "MTN Rwanda Message\nComing soon"
                 else "MTN Rwandacell Message\nComing soon"
             )
             else -> {
-                // Check if targetKey is a sub-menu (has children in menus table)
                 val subItems = menuRepo.findByMenuKeyAndActiveTrueOrderByPositionAsc(targetKey)
                 if (subItems.isNotEmpty()) {
-                    // It's a sub-menu — render it or process choice
                     handleSubMenu(targetKey, subItems, steps, fromIndex, recipient, callerPhone)
                 } else {
                     // It's a package list — run the package flow
@@ -126,7 +116,6 @@ class UssdService(
         return resolveTarget(chosen.targetKey, steps, fromIndex + 1, recipient, callerPhone)
     }
 
-    // ── Menu rendering ────────────────────────────────────────────────────────
 
     private fun renderMenu(menuKey: String, phone: String, items: List<MenuEntity>? = null): String {
         val list = items ?: menuRepo.findByMenuKeyAndActiveTrueOrderByPositionAsc(menuKey)
@@ -139,8 +128,6 @@ class UssdService(
         return CON((lines + back).joinToString("\n"))
     }
 
-    // ── Parent menu lookup — used for back navigation ─────────────────────────
-    // Maps each sub-menu key to its parent so "0" knows where to go back to
 
     private fun parentOf(targetKey: String): String = when (targetKey) {
         "voicepack"       -> "main"
@@ -166,7 +153,6 @@ class UssdService(
         else             -> "main"
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun registerCustomerIfNew(phoneNumber: String) {
         val normalized = phoneNumber.removePrefix("+250").let {
