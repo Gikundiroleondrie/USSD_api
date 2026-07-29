@@ -30,11 +30,11 @@ fun handle(
     return when (requestId) {
 
         "1" -> {
-            val session = sessionStore.createSession(phoneNumber)
+            val session = sessionStore.createSession(phoneNumber, sessionId)
             val response = ussdService.handle(phoneNumber, "")
             if (response.startsWith("END")) sessionStore.clearSession(session.sessionId)
             ResponseEntity.ok(
-                "sessionId: ${session.sessionId}\n\n${response.removePrefix("CON ").removePrefix("END ")}"
+                response.removePrefix("CON ").removePrefix("END ")
             )
         }
 
@@ -42,7 +42,7 @@ fun handle(
             if (sessionId.isNullOrBlank()) {
                 return ResponseEntity.badRequest().body("sessionId is required when requestId is 0")
             }
-            val accumulated = sessionStore.appendText(sessionId, text)
+            val accumulated = sessionStore.appendText(sessionId, text, phoneNumber)
                 ?: return ResponseEntity.status(410).body(
                     "Session not found or has expired. Please dial again."
                 )

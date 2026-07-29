@@ -85,7 +85,6 @@ class UssdService(
                 if (subItems.isNotEmpty()) {
                     handleSubMenu(targetKey, subItems, steps, fromIndex, recipient, callerPhone)
                 } else {
-                    // It's a package list — run the package flow
                     simplePackageFlow(
                         steps, fromIndex, recipient, callerPhone,
                         packages.get(targetKey),
@@ -132,7 +131,7 @@ class UssdService(
     private fun parentOf(targetKey: String): String = when (targetKey) {
         "voicepack"       -> "main"
         "bundleinternet"  -> "main"
-        "prestige"        -> "main"
+        "prestige"        -> "prestigemenu"
         "prestigemenu"    -> "main"
         "amahanga"        -> "voicepack"
         "amahangaUmunsi",
@@ -149,7 +148,6 @@ class UssdService(
         "irekureUkwezi", "voiceGwamon", "desade",
         "voiceFoLeva"    -> "voicepack"
         "tubitayeho", "dataGwamon", "dataFoLeva" -> "bundleinternet"
-        "prestige"       -> "prestigemenu"
         else             -> "main"
     }
 
