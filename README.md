@@ -40,64 +40,70 @@ The project is structured as a **Microservices Architecture** using Kotlin and S
 
 ## 📱 Complete USSD User Flows (`*772#`)
 
-### 📐 USSD Class Diagram
+### 📐 3.6.6 Class Diagram
 
 ```mermaid
 classDiagram
-    class CustomerEntity {
-        +Long id
-        +String phoneNumber
-        +Boolean active
-        +LocalDateTime createdAt
-        +List~TransactionEntity~ transactions
+    direction TB
+
+    class User {
+        +INT id
+        +VARCHAR phone
+        +BOOLEAN active
+        +DATETIME created_at
     }
 
-    class TransactionEntity {
-        +Long id
-        +CustomerEntity customer
-        +String receiverNumber
-        +String packageLabel
-        +Int price
-        +LocalDateTime transactionDate
+    class Session {
+        +VARCHAR session_id
+        +VARCHAR phone
+        +VARCHAR path
+        +INT level
+        +VARCHAR recipient_phone
+        +DATETIME created_at
     }
 
-    class MenuEntity {
-        +Long id
-        +String menuKey
-        +Int position
-        +String labelRw
-        +String labelEn
-        +String targetKey
-        +Boolean requiresPhone
-        +Boolean active
+    class Category_Menu {
+        +INT id
+        +VARCHAR menu_key
+        +INT position
+        +VARCHAR label_rw
+        +VARCHAR label_en
+        +VARCHAR target_key
+        +BOOLEAN requires_phone
+        +BOOLEAN active
     }
 
-    class PackageEntity {
-        +Long id
-        +String menuKey
-        +Int sortOrder
-        +String label
-        +Int price
-        +String confirmText
-        +Boolean active
+    class Product_Package {
+        +INT id
+        +VARCHAR menu_key
+        +INT sort_order
+        +VARCHAR label
+        +INT price
+        +VARCHAR confirm_text
+        +BOOLEAN active
+    }
+
+    class Transaction {
+        +INT id
+        +INT customer_id
+        +VARCHAR receiver_number
+        +VARCHAR package_label
+        +INT price
+        +DATETIME transaction_date
     }
 
     class AdminUser {
-        +Long id
-        +String username
-        +String password
-        +String role
+        +INT id
+        +VARCHAR username
+        +VARCHAR password
+        +VARCHAR role
     }
 
-    class SessionData {
-        +String phoneNumber
-        +String sessionId
-        +StringBuilder accumulatedText
-        +LocalDateTime lastAccessTime
-    }
-
-    CustomerEntity "1" -- "0..*" TransactionEntity : owns >
-    MenuEntity "1" -- "0..*" PackageEntity : routes_to >
+    User "1" --> "*" Session : starts
+    User "1" --> "*" Transaction : owns
+    Category_Menu "1" --> "*" Product_Package : contains
+    Session "*" --> "1" Product_Package : selects
+    Product_Package "1" --> "*" Transaction : purchased
 ```
 
 ### 🔄 USSD Sequence Diagram
