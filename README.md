@@ -40,6 +40,66 @@ The project is structured as a **Microservices Architecture** using Kotlin and S
 
 ## 📱 Complete USSD User Flows (`*772#`)
 
+### 📐 USSD Class Diagram
+
+```mermaid
+classDiagram
+    class CustomerEntity {
+        +Long id
+        +String phoneNumber
+        +Boolean active
+        +LocalDateTime createdAt
+        +List~TransactionEntity~ transactions
+    }
+
+    class TransactionEntity {
+        +Long id
+        +CustomerEntity customer
+        +String receiverNumber
+        +String packageLabel
+        +Int price
+        +LocalDateTime transactionDate
+    }
+
+    class MenuEntity {
+        +Long id
+        +String menuKey
+        +Int position
+        +String labelRw
+        +String labelEn
+        +String targetKey
+        +Boolean requiresPhone
+        +Boolean active
+    }
+
+    class PackageEntity {
+        +Long id
+        +String menuKey
+        +Int sortOrder
+        +String label
+        +Int price
+        +String confirmText
+        +Boolean active
+    }
+
+    class AdminUser {
+        +Long id
+        +String username
+        +String password
+        +String role
+    }
+
+    class SessionData {
+        +String phoneNumber
+        +String sessionId
+        +StringBuilder accumulatedText
+        +LocalDateTime lastAccessTime
+    }
+
+    CustomerEntity "1" -- "0..*" TransactionEntity : owns >
+    MenuEntity "1" -- "0..*" PackageEntity : routes_to >
+```
+
 ### 🔄 USSD Sequence Diagram
 
 ```mermaid
