@@ -104,6 +104,10 @@ classDiagram
     Category_Menu "1" --> "*" Product_Package : contains
     Session "*" --> "1" Product_Package : selects
     Product_Package "1" --> "*" Transaction : purchased
+    
+    AdminUser "1" --> "*" Category_Menu : manages
+    AdminUser "1" --> "*" Product_Package : manages
+    AdminUser "1" --> "*" Transaction : monitors
 ```
 
 ### 🔄 USSD Sequence Diagram
