@@ -40,7 +40,44 @@ The project is structured as a **Microservices Architecture** using Kotlin and S
 
 ## 📱 Complete USSD User Flows (`*772#`)
 
-### 📊 USSD Flowchart Diagram
+### 🔄 USSD Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Mobile User
+    participant GW as USSD Gateway (8081)
+    participant Admin as Admin Service (8083)
+    participant Tx as Transaction Service (8082)
+    participant DB as MySQL Database
+
+    User->>GW: POST /ussd (requestId=1, *772#)
+    GW->>Tx: POST /api/customers/register-if-new
+    Tx->>DB: Check & Save Customer entity
+    GW->>Admin: GET /api/public/menus/main
+    Admin-->>GW: List<MenuDto> (Main Menu Items)
+    GW-->>User: HTTP 200 "CON 1)Kohereza Me2U\n2)Voice pack..."
+
+    User->>GW: POST /ussd (requestId=0, text="1*0790233199")
+    GW->>Admin: GET /api/public/packages/me2u
+    Admin-->>GW: List<PkgDto> (Airtime Packages)
+    GW-->>User: HTTP 200 "CON 1)500Frw\n2)1,000Frw...\n0)Back"
+
+    User->>GW: POST /ussd (requestId=0, text="1*0790233199*1")
+    GW-->>User: HTTP 200 "CON Yello, Wohereje inite za 500RWF... 1)Emeza 2)Kuvamo"
+
+    User->>GW: POST /ussd (requestId=0, text="1*0790233199*1*1")
+    GW->>Tx: POST /api/transactions/process (callerPhone, recipientPhone, packageLabel, price)
+    Tx->>Tx: Check balance in SimulatedAccounts
+    alt Sufficient Balance
+        Tx->>DB: Save TransactionEntity & update Customer
+        Tx-->>GW: TransactionResultDto(success=true, message="Success")
+        GW-->>User: HTTP 200 "END Yello, Wohereje inite za 500RWF byagenze neza..."
+    else Insufficient Balance
+        Tx-->>GW: TransactionResultDto(success=false, message="Inite zidahagije")
+        GW-->>User: HTTP 200 "END Mukiriya wacu, kohereza Me2U byanze..."
+    end
+```
 
 ```mermaid
 graph TD
