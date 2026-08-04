@@ -40,6 +40,58 @@ The project is structured as a **Microservices Architecture** using Kotlin and S
 
 ## 📱 Complete USSD User Flows (`*772#`)
 
+### 🗄️ 3.6.7 Entity Relationship Diagram (ERD)
+
+```mermaid
+erDiagram
+    CUSTOMERS {
+        bigint id PK
+        varchar phone_number UK
+        boolean active
+        datetime created_at
+    }
+
+    TRANSACTIONS {
+        bigint id PK
+        bigint customer_id FK
+        varchar receiver_number
+        varchar package_label
+        int price
+        datetime transaction_date
+    }
+
+    MENU_ITEMS {
+        bigint id PK
+        varchar menu_key
+        int position
+        varchar label_rw
+        varchar label_en
+        varchar target_key
+        boolean requires_phone
+        boolean active
+    }
+
+    PACKAGES {
+        bigint id PK
+        varchar menu_key
+        int sort_order
+        varchar label
+        int price
+        varchar confirm_text
+        boolean active
+    }
+
+    ADMIN_USERS {
+        bigint id PK
+        varchar username UK
+        varchar password
+        varchar role
+    }
+
+    CUSTOMERS ||--o{ TRANSACTIONS : "makes"
+    MENU_ITEMS ||--o{ PACKAGES : "routes_to"
+```
+
 ### 📐 3.6.6 Class Diagram
 
 ```mermaid
