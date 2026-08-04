@@ -40,6 +40,43 @@ The project is structured as a **Microservices Architecture** using Kotlin and S
 
 ## 📱 Complete USSD User Flows (`*772#`)
 
+### 📊 USSD Flowchart Diagram
+
+```mermaid
+graph TD
+    Start(["Dial USSD Code (*772#)"]) --> RegCheck["Register Customer If New"]
+    RegCheck --> ShowMain["Show Main Menu (*772#)"]
+    
+    ShowMain --> Choice{"User Input Choice?"}
+
+    Choice -- "1 (Kohereza Me2U)" --> RecipientPrompt["Enter Recipient Number\n(07xxxxxxxx)"]
+    Choice -- "2 (Voice Pack)" --> RecipientPrompt
+    Choice -- "3 (Internet Bundles)" --> RecipientPrompt
+    Choice -- "4 (Prestige)" --> RecipientPrompt
+    Choice -- "5 (Hindura Ururimi)" --> LangToggle["Toggle Language\n(Kinyarwanda / English)"] --> ShowMain
+
+    RecipientPrompt --> PhoneValid{"Phone Valid?\n(Format: 07xxxxxxxx)"}
+    PhoneValid -- "No" --> InvalidPhone["Show 'Invalid recipient number'"] --> EndSession(["End Session"])
+    
+    PhoneValid -- "Yes" --> CategoryMenu{"Select Menu / Submenu"}
+
+    CategoryMenu -- "Submenu (e.g. Amahanga, Irekure)" --> SubItems["Show Submenu Options"] --> CategoryMenu
+    CategoryMenu -- "Package Selection" --> ShowPkg["Show Available Packages & Prices"]
+    CategoryMenu -- "Router Bundles" --> ComingSoon["Show 'Coming soon'"] --> EndSession
+
+    ShowPkg --> PkgChoice{"Choose Package"}
+    PkgChoice -- "0 (Back)" --> CategoryMenu
+    PkgChoice -- "Select 1..N" --> ConfirmScreen["Show Confirmation Screen\n(1: Confirm, 2: Cancel, 0: Back)"]
+
+    ConfirmScreen --> ConfirmChoice{"User Decision?"}
+    ConfirmChoice -- "2 (Cancel)" --> TxCancel["Show 'Transaction cancelled'"] --> EndSession
+    ConfirmChoice -- "0 (Back)" --> ShowPkg
+    ConfirmChoice -- "1 (Confirm)" --> CheckBalance{"Check Account Balance\n(SimulatedAccounts)"}
+
+    CheckBalance -- "Insufficient Balance" --> Insufficient["Show 'Inite zidahagije'\n(Insufficient balance)"] --> EndSession
+    CheckBalance -- "Sufficient Balance" --> DebitTx["Debit Account & Save Transaction"] --> TxSuccess["Show 'Transaction completed successfully'"] --> EndSession
+```
+
 ### 1. Main Menu Overview
 When a user dials `*772#` (HTTP POST `/ussd` with `requestId=1`), the system presents the Main Menu:
 
