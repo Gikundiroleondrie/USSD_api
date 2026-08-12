@@ -52,8 +52,8 @@ class UssdController(
                 logger.info("200 OK: POST (XML) - /ussd sid={} in {}ms", sid, duration)
 
                 val xmlRes = UssdXmlResponse(
-                    msisdn = rawPhone,
-                    sessionid = sid,
+                    msisdn = null,
+                    sessionid = null,
                     freeflow = FreeflowDto(if (isEnd) "FB" else "FC"),
                     message = resMessage
                 )

@@ -1,6 +1,7 @@
 package rw.mtn.ussd.gateway.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 
@@ -41,6 +42,7 @@ data class UssdXmlRequest(
     var freeflow: FreeflowDto? = null
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "response")
 data class UssdXmlResponse(
     @field:JacksonXmlProperty(localName = "msisdn")
